@@ -638,27 +638,6 @@ def load_queue_frame(queue_frame):
             image=tk_image            # Use the loaded image
         )
 
-        
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
         # Create Post's title
         label = tk.Label(post, text="Post title", bg=post.cget('bg'))
@@ -981,27 +960,61 @@ def load_feed_frame(feed_frame, feed_btn):
         if entry_img_url is not None:
             print('This entry has a picture!')
             # Create the canvas
-            entry_img_container = Canvas(feed_frame, bg="#000", width=379, height=172)  # Set desired width and height
+            entry_img_container = Canvas(feed_frame, bg="#d7d9e5", width=379, height=172)  # Set desired width and height
             entry_img_container.place(x=657, y=23)  # Set desired position
             # Load the image from the URL
             response = requests.get(entry_img_url)
             image_data = response.content
             image = Image.open(BytesIO(image_data))
 
+            # Resize the image to fit the canvas dimensions while maintaining aspect ratio
+            width, height = image.size
+            canvas_width = 379
+            canvas_height = 172
+            aspect_ratio = min(canvas_width / width, canvas_height / height)
+            new_width = int(width * aspect_ratio)
+            new_height = int(height * aspect_ratio)
+            image = image.resize((new_width, new_height))  # Remove Image.ANTIALIAS here
+
             # Convert the Image object to a Tkinter PhotoImage
             photo = ImageTk.PhotoImage(image)
 
             # Create an image container on the canvas
             image_container = entry_img_container.create_image(
-                0, 0,
+                canvas_width / 2, canvas_height / 2,
                 image=photo,
-                anchor="nw"  # Set anchor to the top-left corner
+                anchor="center"  # Center the image
             )
 
             # Make sure to keep a reference to the photo object to prevent it from being garbage collected
             entry_img_container.photo = photo
         else:
             print('This entry doesn\'t have a picture!')
+            # Create the canvas
+            entry_img_container = Canvas(feed_frame, bg="#d7d9e5", width=379, height=172)  # Set desired width and height
+            entry_img_container.place(x=657, y=23)  # Set desired position
+            # Load a placeholder image from the local file
+            placeholder_image = Image.open("wallpaper.jpg")
+            # Get the dimensions of the placeholder image
+            width, height = placeholder_image.size
+            # Calculate the scaling factor to fit the image within the canvas while maintaining aspect ratio
+            scale_factor = min(379 / width, 172 / height)
+            # Resize the placeholder image
+            resized_image = placeholder_image.resize((int(width * scale_factor), int(height * scale_factor)))
+            # Convert the resized Image object to a Tkinter PhotoImage
+            placeholder_photo = ImageTk.PhotoImage(resized_image)
+            # Calculate the x-coordinate to center the image horizontally
+            x_centered = (379 - resized_image.width) // 2
+            # Create an image container on the canvas
+            image_container = entry_img_container.create_image(
+                x_centered, 0,
+                image=placeholder_photo,
+                anchor="nw"  # Set anchor to the top-left corner
+            )
+            # Make sure to keep a reference to the photo object to prevent it from being garbage collected
+            entry_img_container.photo = placeholder_photo
+
+
 
 
         search_btn = Button(
