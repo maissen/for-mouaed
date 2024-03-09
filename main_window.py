@@ -171,7 +171,7 @@ def load_main_window():
             queue_frame.place_configure(x=1000.0, y=1000.0)
         
         elif button == queue_btn:
-            load_queue_frame(queue_frame)
+            load_queue_frame(queue_frame, queue_btn)
         
             feed_frame.place_configure(x=1000.0, y=1000.0)
             sources_frame.place_configure(x=1000.0, y=1000.0)

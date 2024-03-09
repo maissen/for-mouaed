@@ -9,6 +9,44 @@ import os
 import webbrowser
 import requests
 from io import BytesIO
+import os
+from datetime import datetime
+
+def delete_post_from_queue(post, queue_btn):
+    try:
+        with open('queue_list.dat', 'rb') as file:
+            queue_list = pickle.load(file)
+            queue_list_filtered = [item for item in queue_list if item['title'] != post['title']]
+        with open('queue_list.dat', 'wb') as file:
+            pickle.dump(queue_list_filtered, file)
+    except FileNotFoundError:
+        print("File 'queue_list.dat' not found. Creating a new file with an empty list.")
+        queue_list = []
+        with open('queue_list.dat', 'wb') as file:
+            pickle.dump(queue_list, file)
+    queue_btn.invoke()
+
+
+def add_to_queue(entry, hashtags, title, description):
+    try:
+        if os.path.exists('queue_list.dat') and os.path.getsize('queue_list.dat') > 0:
+            with open('queue_list.dat', 'rb') as file:
+                queue_list = pickle.load(file)
+        else:
+            print("File 'queue_list.dat' is empty or doesn't exist. Initializing queue_list as an empty list.")
+            queue_list = []
+
+        queue_list.insert(0, {"entry": entry,"title": title, "description": description, "hashtags": hashtags})
+        print("queue list : ", queue_list)
+
+        with open('queue_list.dat', 'wb') as file:
+            pickle.dump(queue_list, file)
+            print('Entry is uploaded successfully!')
+    except FileNotFoundError:
+        print("File 'queue_list.dat' not found. Creating a new file with an empty list.")
+        queue_list = []
+        with open('queue_list.dat', 'wb') as file:
+            pickle.dump(queue_list, file)
 
 
 def get_entry_picture(entry):
@@ -93,8 +131,11 @@ def popup_message(title, message):
     # Create the popup window
     popup = tk.Toplevel()
     popup.title(title)
-    popup_width = 300
+    popup_width = 350
     popup_height = 80
+
+    # Hide the title bar
+    popup.overrideredirect(True)
 
     # Get the screen width and height
     screen_width = popup.winfo_screenwidth()
@@ -580,77 +621,82 @@ def load_sources_frame(sources_frame, feed_btn):
     )
 
 
-def load_queue_frame(queue_frame):
+def load_queue_frame(queue_frame, queue_btn):
+    try:
+        # Check if the file exists and is not empty
+        if os.path.exists('queue_list.dat') and os.path.getsize('queue_list.dat') > 0:
+            with open('queue_list.dat', 'rb') as file:
+                queue_data = pickle.load(file)
+                print('queue_list.dat is loaded successfully!')
+        else:
+            print("File 'queue_list.dat' is empty. Initializing queue_list as an empty list.")
+            queue_data = []
+    except FileNotFoundError:
+        print("File 'queue_list.dat' not found. Creating a new file with an empty list.")
+        queue_data = []
+        with open('queue_list.dat', 'wb') as file:
+            pickle.dump(queue_data, file)
+
+    queue_data_length = len(queue_data)
+
     destroy_frame_child_elements(queue_frame)
     # Add text label above the queue_list canvas
     queue_label = tk.Label(queue_frame, text="Your Queue list", bg="#d9d9d9", fg="black", font=("Inter", 16))
     queue_label.pack(pady=10)  # Adjust padding according to your preference
 
     # Create a canvas to contain the posts
-    queue_list = tk.Canvas(queue_frame, bg="#d9d9d9", width=1023, height=543)
-    queue_list.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)  # Adjust this according to your layout requirements
+    queue_canvas = tk.Canvas(queue_frame, bg="#d9d9d9", width=1023, height=543)
+    queue_canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)  # Adjust this according to your layout requirements
 
     # Calculate total content height
-    total_content_height = (3 * (15 + 130)) + 100  # Height of 10 rectangles
+    total_content_height = (queue_data_length * (15 + 130)) + 100  # Height of 10 rectangles
 
     # Configure canvas scrolling
-    queue_list.config(scrollregion=(0, 0, 1010, total_content_height))  # Adjust width according to your content
+    queue_canvas.config(scrollregion=(0, 0, 1010, total_content_height))  # Adjust width according to your content
 
     # Create a vertical scrollbar for the canvas
-    scrollbar = tk.Scrollbar(queue_frame, orient="vertical", command=queue_list.yview)
+    scrollbar = tk.Scrollbar(queue_frame, orient="vertical", command=queue_canvas.yview)
     scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
 
     # Configure canvas scrolling
-    queue_list.config(yscrollcommand=scrollbar.set)
+    queue_canvas.config(yscrollcommand=scrollbar.set)
 
     # Create rectangles as posts
     y = 15
-    for i in range(3):  # Loop only until the second-to-last rectangle
-        post = tk.Canvas(queue_list, bg="#d9d9d9", width=996, height=130)
-        queue_list.crpost = tk.Canvas(queue_list, bg="#d9d9d9", width=996, height=130)
-        queue_list.create_window(14, y, anchor="nw", window=post)
+    for i in range(len(queue_data)):  # Loop only until the second-to-last rectangle
+        post = tk.Canvas(queue_canvas, bg="#d9d9d9", width=996, height=130)
+        queue_canvas.create_window(14, y, anchor="nw", window=post)
 
-        # Load the image
-        image_path = "C:/Users/Maissen Belgacem/Desktop/Twitter Bot/Twitter bot with new design/picture.jpg"
-        image = Image.open(image_path)
-
-        # Resize the image as needed
-        image = image.resize((168, 115))  # Adjust the dimensions as per your requirement
-
-        # Convert the image to Tkinter-compatible format
-        tk_image = ImageTk.PhotoImage(image)
-
-        post.create_rectangle(  # entry img
-            11.5,
-            10,
-            180,
-            125,
-            fill="royalblue",
-            outline="#bfbfbf",
-            width=1
-        )
-
-        # Create the image inside the royal blue rectangle
-        post_img = post.create_image(
-            6 + (180 - 168) / 2,  # Adjust x-coordinate to center the image horizontally
-            5 + (125 - 115) / 2,     # Adjust y-coordinate to center the image vertically
-            anchor=tk.NW,             # Set anchor to top-left corner
-            image=tk_image            # Use the loaded image
-        )
-
+        # Assuming queue_data is a list of dictionaries containing post data
+        title = queue_data[i].get('title', '')
+        description = queue_data[i].get('description', '')
+        hashtags = queue_data[i].get('hashtags', '')
 
         # Create Post's title
         label = tk.Label(post, text="Post title", bg=post.cget('bg'))
-        label.place(x=180+15, y=10)
-        # Create Posts's description
-        if len(description) > 300:
-            label = tk.Label(post, text=f"{description[:300]}...", bg=post.cget('bg'), wraplength=700, anchor="w", justify="left")
+        if len(title) > 250:
+            label = tk.Label(post, text=f"{title[:250]}...", bg=post.cget('bg'))
         else:
-            label = tk.Label(post, text=f"{description}", bg=post.cget('bg'), wraplength=700, anchor="w", justify="left")
-        label.place(x=180+15, y=40)
+            label = tk.Label(post, text=f"{title}", bg=post.cget('bg'))
+        label.place(x=180+15, y=10)
+
+        # Create Posts's description
+        if(description):
+            if len(description) > 350:
+                label = tk.Label(post, text=f"{description[:350]}...", bg=post.cget('bg'), wraplength=680, anchor="w", justify="left", fg="#484848")
+            else:
+                label = tk.Label(post, text=f"{description}", bg=post.cget('bg'), wraplength=680, anchor="w", justify="left", fg="#484848")
+        else:
+            label = tk.Label(post, text=f"{"This post doesn't have a description to show!"}", bg=post.cget('bg'), wraplength=680, anchor="w", justify="left", fg="#484848")
+        label.place(x=180+15, y=35)
 
         # label of Post's date
-        label = tk.Label(post, text="18 Oct 2024", bg=post.cget('bg'))
+        # Parse the pub_date string into a datetime object
+        pub_date_datetime = datetime.strptime(queue_data[i].get('entry', '').get('published', 'Failed to get entry\'s date'), "%a, %d %b %Y %H:%M:%S %z")
+
+        # Format the datetime object to show only date, month, and year
+        pub_date_formatted = pub_date_datetime.strftime("%d %b %Y")
+        label = tk.Label(post, text=pub_date_formatted, bg=post.cget('bg'))
         label.place(x=180+15, y=102)
 
         delete_post_from_queue_btn = tk.Button(
@@ -660,7 +706,7 @@ def load_queue_frame(queue_frame):
             fg="#FFFFFF",
             bd=0,
             highlightthickness=0,
-            command=lambda: print("delete_post_from_queue_btn clicked"),
+            command=lambda: delete_post_from_queue(queue_data[i], queue_btn),
             relief="flat",
             cursor="hand2"
         )
@@ -707,11 +753,71 @@ def load_queue_frame(queue_frame):
             height=25
         )
 
+        ################
+        # To set the entry's img
+        entry_img_url = get_entry_picture(queue_data[i]['entry'])
+        if entry_img_url is not None:
+            # print('This entry has a picture!')
+            # Create the canvas
+            entry_img_container = Canvas(post, bg="#d7d9e5", width=180, height=130)  # Set desired width and height
+            entry_img_container.place(x=0, y=0)  # Set desired position
+            # Load the image from the URL
+            response = requests.get(entry_img_url)
+            image_data = response.content
+            image = Image.open(BytesIO(image_data))
 
+            # Resize the image to fit the canvas dimensions while maintaining aspect ratio
+            width, height = image.size
+            canvas_width = 180
+            canvas_height = 130
+            aspect_ratio = min(canvas_width / width, canvas_height / height)
+            new_width = int(width * aspect_ratio)
+            new_height = int(height * aspect_ratio)
+            image = image.resize((new_width, new_height))  # Remove Image.ANTIALIAS here
+
+            # Convert the Image object to a Tkinter PhotoImage
+            photo = ImageTk.PhotoImage(image)
+
+            # Create an image container on the canvas
+            image_container = entry_img_container.create_image(
+                canvas_width / 2, canvas_height / 2,
+                image=photo,
+                anchor="center"  # Center the image
+            )
+
+            # Make sure to keep a reference to the photo object to prevent it from being garbage collected
+            entry_img_container.photo = photo
+        else:
+            # print('This entry doesn\'t have a picture!')
+            # Create the canvas
+            entry_img_container = Canvas(post, bg="#d7d9e5", width=180, height=130)  # Set desired width and height
+            entry_img_container.place(x=0, y=0)  # Set desired position
+            # Load a placeholder image from the local file
+            placeholder_image = Image.open("404.jpg")
+            # Get the dimensions of the placeholder image
+            width, height = placeholder_image.size
+            # Calculate the scaling factor to fit the image within the canvas while maintaining aspect ratio
+            scale_factor = min(379 / width, 172 / height)
+            # Resize the placeholder image
+            resized_image = placeholder_image.resize((int(width * scale_factor), int(height * scale_factor)))
+            # Convert the resized Image object to a Tkinter PhotoImage
+            placeholder_photo = ImageTk.PhotoImage(resized_image)
+            # Calculate the x-coordinate to center the image horizontally
+            x_centered = (180 - resized_image.width) // 2
+            # Create an image container on the canvas
+            image_container = entry_img_container.create_image(
+                x_centered, 0,
+                image=placeholder_photo,
+                anchor="nw"  # Set anchor to the top-left corner
+            )
+            # Make sure to keep a reference to the photo object to prevent it from being garbage collected
+            entry_img_container.photo = placeholder_photo
+
+        ###################
 
         y += 15 + 130  # Increment y-coordinate to properly position each child canvas
-        
-    
+
+
 
     push_posts = tk.Button(
         queue_frame,
@@ -730,6 +836,7 @@ def load_queue_frame(queue_frame):
         width=182.0,
         height=46.0
     )
+
 
 
 def load_feed_frame(feed_frame, feed_btn):
@@ -994,7 +1101,7 @@ def load_feed_frame(feed_frame, feed_btn):
             entry_img_container = Canvas(feed_frame, bg="#d7d9e5", width=379, height=172)  # Set desired width and height
             entry_img_container.place(x=657, y=23)  # Set desired position
             # Load a placeholder image from the local file
-            placeholder_image = Image.open("wallpaper.jpg")
+            placeholder_image = Image.open("404.jpg")
             # Get the dimensions of the placeholder image
             width, height = placeholder_image.size
             # Calculate the scaling factor to fit the image within the canvas while maintaining aspect ratio
@@ -1042,7 +1149,7 @@ def load_feed_frame(feed_frame, feed_btn):
         fg="#FFFFFF",
         bd=0,
         highlightthickness=0,
-        command=lambda: print("add_to_queue_btn clicked"),
+        command=lambda: add_to_queue(entry, hashtags_entry.get("1.0", "end-1c"), entry_title.get("1.0", "end-1c"), entry_description.get("1.0", "end-1c")),
         relief="flat",
         cursor="hand2"
         )
@@ -1073,7 +1180,7 @@ def load_feed_frame(feed_frame, feed_btn):
     entries_list = Frame(entries_frame, bg="", width=590)
     entries_frame.create_window((0, 0), window=entries_list, anchor='nw')
 
-    # loading the entries in the entries list container
+    # loading the entries in the entries list container 
     for i in range(number_of_parsed_entries):
         label = Label(
             entries_list, 
