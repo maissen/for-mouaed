@@ -20,30 +20,29 @@ def delete_post_from_queue(post, queue_btn):
         with open('queue_list.dat', 'wb') as file:
             pickle.dump(queue_list_filtered, file)
     except FileNotFoundError:
-        print("File 'queue_list.dat' not found. Creating a new file with an empty list.")
+        # print("File 'queue_list.dat' not found. Creating a new file with an empty list.")
         queue_list = []
         with open('queue_list.dat', 'wb') as file:
             pickle.dump(queue_list, file)
     queue_btn.invoke()
 
 
-def add_to_queue(entry, hashtags, title, description):
+def add_to_queue(entry, hashtags, title, description, image):
     try:
         if os.path.exists('queue_list.dat') and os.path.getsize('queue_list.dat') > 0:
             with open('queue_list.dat', 'rb') as file:
                 queue_list = pickle.load(file)
         else:
-            print("File 'queue_list.dat' is empty or doesn't exist. Initializing queue_list as an empty list.")
+            # print("File 'queue_list.dat' is empty or doesn't exist. Initializing queue_list as an empty list.")
             queue_list = []
 
-        queue_list.insert(0, {"entry": entry,"title": title, "description": description, "hashtags": hashtags})
-        print("queue list : ", queue_list)
+        queue_list.insert(0, {"entry": entry,"title": title, "description": description, "hashtags": hashtags, "image": image})
 
         with open('queue_list.dat', 'wb') as file:
             pickle.dump(queue_list, file)
-            print('Entry is uploaded successfully!')
+            # print('Entry is uploaded successfully!')
     except FileNotFoundError:
-        print("File 'queue_list.dat' not found. Creating a new file with an empty list.")
+        # print("File 'queue_list.dat' not found. Creating a new file with an empty list.")
         queue_list = []
         with open('queue_list.dat', 'wb') as file:
             pickle.dump(queue_list, file)
@@ -627,12 +626,12 @@ def load_queue_frame(queue_frame, queue_btn):
         if os.path.exists('queue_list.dat') and os.path.getsize('queue_list.dat') > 0:
             with open('queue_list.dat', 'rb') as file:
                 queue_data = pickle.load(file)
-                print('queue_list.dat is loaded successfully!')
+                # print('queue_list.dat is loaded successfully!')
         else:
-            print("File 'queue_list.dat' is empty. Initializing queue_list as an empty list.")
+            # print("File 'queue_list.dat' is empty. Initializing queue_list as an empty list.")
             queue_data = []
     except FileNotFoundError:
-        print("File 'queue_list.dat' not found. Creating a new file with an empty list.")
+        # print("File 'queue_list.dat' not found. Creating a new file with an empty list.")
         queue_data = []
         with open('queue_list.dat', 'wb') as file:
             pickle.dump(queue_data, file)
@@ -664,7 +663,7 @@ def load_queue_frame(queue_frame, queue_btn):
     # Create rectangles as posts
     y = 15
     for i in range(len(queue_data)):  # Loop only until the second-to-last rectangle
-        post = tk.Canvas(queue_canvas, bg="#d9d9d9", width=996, height=130)
+        post = tk.Canvas(queue_canvas, bg="#d9d9d9", width=996, height=130, highlightbackground="#d9d9d9")
         queue_canvas.create_window(14, y, anchor="nw", window=post)
 
         # Assuming queue_data is a list of dictionaries containing post data
@@ -693,11 +692,17 @@ def load_queue_frame(queue_frame, queue_btn):
         # label of Post's date
         # Parse the pub_date string into a datetime object
         pub_date_datetime = datetime.strptime(queue_data[i].get('entry', '').get('published', 'Failed to get entry\'s date'), "%a, %d %b %Y %H:%M:%S %z")
-
+        hashtags = queue_data[i]['hashtags'].split()
+        formatted_hashtags = []
+        for hashtag in hashtags:
+            formatted_hashtags.append("#" + hashtag + " ")
+        formatted_hashtags_str = " ".join(formatted_hashtags)
         # Format the datetime object to show only date, month, and year
-        pub_date_formatted = pub_date_datetime.strftime("%d %b %Y")
+        pub_date_formatted = f"{pub_date_datetime.strftime("%d %b %Y")}"
         label = tk.Label(post, text=pub_date_formatted, bg=post.cget('bg'))
         label.place(x=180+15, y=102)
+        label = tk.Label(post, text=f"{formatted_hashtags_str}", bg=post.cget('bg'), fg='#2320BF')
+        label.place(x=180+90, y=102)
 
         delete_post_from_queue_btn = tk.Button(
             post,
@@ -735,32 +740,15 @@ def load_queue_frame(queue_frame, queue_btn):
             height=25
         )
 
-        view_post_from_queue = tk.Button(
-            post,
-            text="V",
-            bg="#222222",
-            fg="#FFFFFF",
-            bd=0,
-            highlightthickness=0,
-            command=lambda: print("view_post_from_queue clicked"),
-            relief="flat",
-            cursor="hand2"
-        )
-        view_post_from_queue.place(
-            x=992-25*3-17,
-            y=9,
-            width=25,
-            height=25
-        )
-
+        
         ################
         # To set the entry's img
+        # Create the canvas
+        entry_img_container = Canvas(post, bg="#d7d9e5", width=180, height=130, highlightbackground="#d9d9d9")  # Set desired width and height
+        entry_img_container.place(x=0, y=0)  # Set desired position
         entry_img_url = get_entry_picture(queue_data[i]['entry'])
         if entry_img_url is not None:
             # print('This entry has a picture!')
-            # Create the canvas
-            entry_img_container = Canvas(post, bg="#d7d9e5", width=180, height=130)  # Set desired width and height
-            entry_img_container.place(x=0, y=0)  # Set desired position
             # Load the image from the URL
             response = requests.get(entry_img_url)
             image_data = response.content
@@ -789,9 +777,6 @@ def load_queue_frame(queue_frame, queue_btn):
             entry_img_container.photo = photo
         else:
             # print('This entry doesn\'t have a picture!')
-            # Create the canvas
-            entry_img_container = Canvas(post, bg="#d7d9e5", width=180, height=130)  # Set desired width and height
-            entry_img_container.place(x=0, y=0)  # Set desired position
             # Load a placeholder image from the local file
             placeholder_image = Image.open("404.jpg")
             # Get the dimensions of the placeholder image
@@ -817,26 +802,24 @@ def load_queue_frame(queue_frame, queue_btn):
 
         y += 15 + 130  # Increment y-coordinate to properly position each child canvas
 
-
-
-    push_posts = tk.Button(
-        queue_frame,
-        text="Push All Posts",
-        bg="#222222",
-        fg="#FFFFFF",
-        bd=0,
-        highlightthickness=0,
-        command=lambda: print("push_posts clicked"),
-        relief="flat",
-        cursor="hand2"
-    )
-    push_posts.place(
-        x=425,  # Adjust the x-coordinate to move the button to a visible location
-        y=550,  # Adjust the y-coordinate to move the button to a visible location
-        width=182.0,
-        height=46.0
-    )
-
+    if queue_data_length > 0:
+        push_posts = tk.Button(
+            queue_frame,
+            text="Push All Posts",
+            bg="#222222",
+            fg="#FFFFFF",
+            bd=0,
+            highlightthickness=0,
+            command=lambda: print("push_posts clicked"),
+            relief="flat",
+            cursor="hand2"
+        )
+        push_posts.place(
+            x=425,  # Adjust the x-coordinate to move the button to a visible location
+            y=550,  # Adjust the y-coordinate to move the button to a visible location
+            width=182.0,
+            height=46.0
+        )
 
 
 def load_feed_frame(feed_frame, feed_btn):
@@ -1065,7 +1048,7 @@ def load_feed_frame(feed_frame, feed_btn):
 
         entry_img_url = get_entry_picture(entry)
         if entry_img_url is not None:
-            print('This entry has a picture!')
+            # print('This entry has a picture!')
             # Create the canvas
             entry_img_container = Canvas(feed_frame, bg="#d7d9e5", width=379, height=172)  # Set desired width and height
             entry_img_container.place(x=657, y=23)  # Set desired position
@@ -1096,7 +1079,7 @@ def load_feed_frame(feed_frame, feed_btn):
             # Make sure to keep a reference to the photo object to prevent it from being garbage collected
             entry_img_container.photo = photo
         else:
-            print('This entry doesn\'t have a picture!')
+            # print('This entry doesn\'t have a picture!')
             # Create the canvas
             entry_img_container = Canvas(feed_frame, bg="#d7d9e5", width=379, height=172)  # Set desired width and height
             entry_img_container.place(x=657, y=23)  # Set desired position
@@ -1149,7 +1132,7 @@ def load_feed_frame(feed_frame, feed_btn):
         fg="#FFFFFF",
         bd=0,
         highlightthickness=0,
-        command=lambda: add_to_queue(entry, hashtags_entry.get("1.0", "end-1c"), entry_title.get("1.0", "end-1c"), entry_description.get("1.0", "end-1c")),
+        command=lambda: add_to_queue(entry, hashtags_entry.get("1.0", "end-1c"), entry_title.get("1.0", "end-1c"), entry_description.get("1.0", "end-1c"), image),
         relief="flat",
         cursor="hand2"
         )
