@@ -30,20 +30,25 @@ def delete_post_from_queue(post, queue_btn):
     queue_btn.invoke()
 
 
+def verify_post(hashtags, title, description):
+    return (len(hashtags) + len(title) + len(description)) < 280
+
+
 def add_to_queue(entry, hashtags, title, description, img_is_included, entry_img_url):
     try:
         if os.path.exists('queue_list.dat') and os.path.getsize('queue_list.dat') > 0:
             with open('queue_list.dat', 'rb') as file:
                 queue_list = pickle.load(file)
         else:
-            # print("File 'queue_list.dat' is empty or doesn't exist. Initializing queue_list as an empty list.")
             queue_list = []
         
-        print("adding to queue : img is included : ", img_is_included)
-        if img_is_included:
-            queue_list.insert(0, {"entry": entry,"title": title, "description": description, "hashtags": hashtags, 'img_is_included': img_is_included, 'entry_img_url': entry_img_url})
+        if(verify_post(hashtags, title, description)):
+            if img_is_included:
+                queue_list.insert(0, {"entry": entry,"title": title, "description": description, "hashtags": hashtags, 'img_is_included': img_is_included, 'entry_img_url': entry_img_url})
+            else:
+                queue_list.insert(0, {"entry": entry,"title": title, "description": description, "hashtags": hashtags, 'img_is_included': img_is_included, 'entry_img_url': ''})
         else:
-            queue_list.insert(0, {"entry": entry,"title": title, "description": description, "hashtags": hashtags, 'img_is_included': img_is_included, 'entry_img_url': ''})
+            popup_message('Error', 'Your post length shouldn\'t exceed 280 text length!')
 
         with open('queue_list.dat', 'wb') as file:
             pickle.dump(queue_list, file)
@@ -183,18 +188,36 @@ def share_post(post_data):
             client = tweepy.Client(bearer_token, api_key, api_key_secret, access_token, access_token_secret)
             auth = tweepy.OAuth1UserHandler(api_key, api_key_secret, access_token, access_token_secret)
             api = tweepy.API(auth)
+            
+            hashtags = post_data['hashtags'].split()
+            formatted_hashtags = []
+            for hashtag in hashtags:
+                formatted_hashtags.append("#" + hashtag + " ")
+            formatted_hashtags_str = " ".join(formatted_hashtags)
+
+            pub_date_datetime = datetime.strptime(post_data['entry']['published'], "%a, %d %b %Y %H:%M:%S %z")
+            pub_date_formatted = f"{pub_date_datetime.strftime("%d %b %Y")}"
+
             if post_data['img_is_included']:
                 picture_url = post_data['entry_img_url']
-                post = f"{post_data['title']}\n\n{post_data['description']}\nShared on : {post_data['entry']['published']}\n{post_data['hashtags']}\n\n{picture_url}"
+                post = f"{post_data['title']}\n\n{post_data['description']}\nShared on : {pub_date_formatted}\n{formatted_hashtags_str}\n\n{picture_url}"
                 client.create_tweet(text=post)
             else:
-                post = f"{post_data['title']}\n\n{post_data['description']}\nShared on : {post_data['entry']['published']}\n{post_data['hashtags']}"
+                post = f"{post_data['title']}\n\n{post_data['description']}\nShared on : {pub_date_formatted}\n{formatted_hashtags_str}"
                 client.create_tweet(text=post)
+
+                
         except Exception as e:
             print("Error:", e)
             popup_message('Error', "Oops! an error occurred while sharing your post to Twitter!")
         else:
             popup_message('Success', "Post shared to Twitter successfully!")
+
+
+def push_posts(queue_data):
+    for i in range(len(queue_data)):
+        share_post(queue_data[i])
+        print(f"Post num {i} is shared successfully!")
 
 
 def save_rss(saved_links_from_file, rss_title, rss_link):
@@ -846,18 +869,18 @@ def load_queue_frame(queue_frame, queue_btn):
         y += 15 + 130  # Increment y-coordinate to properly position each child canvas
 
     if queue_data_length > 0:
-        push_posts = tk.Button(
+        push_posts_button = tk.Button(
             queue_frame,
             text="Push All Posts",
             bg="#222222",
             fg="#FFFFFF",
             bd=0,
             highlightthickness=0,
-            command=lambda: print("push_posts clicked"),
+            command=lambda: push_posts(queue_data),
             relief="flat",
             cursor="hand2"
         )
-        push_posts.place(
+        push_posts_button.place(
             x=425,  # Adjust the x-coordinate to move the button to a visible location
             y=550,  # Adjust the y-coordinate to move the button to a visible location
             width=182.0,
