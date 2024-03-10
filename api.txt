@@ -1,9 +1,13 @@
-This file is so important and these information are so sensible, Enjoy!
+For security, this will be the last time we'll fully display the Secret.
+    Save it in a secure location
+    Treat it like a password or a set of keys
+    If security has been compromised, regenerate it
+    DO NOT store it in public places or shared docs
 
-API Key : "rbVv4cZS6laGp4GERZxB5FH3M"
-API Key Secret : "rp3SNfM7YOg8TakpEUTeuGxs3MF5Y3tKut7rCSYBrh4l5b6r1d"
-Bearer Token : "AAAAAAAAAAAAAAAAAAAAAPdPsgEAAAAAWQWGmV7HJXIYNVd7vwPTqfpxIpU%3DHZp7PvAhKUXld1Xh94fosP5SOuNF3qUzBgGNPR7X8tpXsU6VxL"
-Client ID : "Z1FRRHlJRGxMSUJfdkVKdXBra206MTpjaQ"
-Client Secret : "CfRJ0gOywH0fmXrag2izUhtA-wRi0px-ZRAFSTDXORvhgZ3uHV"
-Access Token : "1762926841638117376-TOR3Q7Mw71rMvJn7tCRC5rYf8d78yy"
-Access Token Secret : "V1ma7CuWddNEbDQD9t6zRB1JmDst4QtWIai3gusRLkkus"
+API Key : "yWT3VnblbzVscfjK8bLVZSvyO"
+API Key Secret : "WLOXuk0mJQ344jEGCuXBY58w3birslhYgy8VgProeYwzZWuFPo"
+Bearer Token : "AAAAAAAAAAAAAAAAAAAAAE7usgEAAAAAyqC1VOSj45JVq4HyfNo50Ffx2GE%3DXlWHpY5lWk0JcG1R2GazgDEpUDz3ndhDblAADyBC7N565Cv6jQ"
+Client ID : "Y1l5b0dJV2JNcUV4THpXSkMtX1k6MTpjaQ"
+Client Secret : "uxsrILWZBZeMftf_DicTvpESu596ESQECOI3RC6H43LaX65Zg1"
+Access Token : "1762926841638117376-Zi3vPML6wSrBk9U7cUMguSJitrQMxP"
+Access Token Secret : "ybGhBalhgvD2Owt5wRGnBmUY3H6tfHHQri9Lb1fWguFf4"

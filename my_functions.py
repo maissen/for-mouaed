@@ -12,6 +12,7 @@ from io import BytesIO
 import os
 from datetime import datetime        
 import re
+import tweepy
 
 
 def delete_post_from_queue(post, queue_btn):
@@ -177,17 +178,21 @@ def share_post(post_data):
         client_secret = matches[4]
         access_token = matches[5]
         access_token_secret = matches[6]
+
         try:
-            client = tweepy.Client(bearer_token, api_key, api_secret, access_token, access_token_secret)
-            auth = tweepy.OAuth1UserHandler(api_key, api_secret, access_token, access_token_secret)
+            client = tweepy.Client(bearer_token, api_key, api_key_secret, access_token, access_token_secret)
+            auth = tweepy.OAuth1UserHandler(api_key, api_key_secret, access_token, access_token_secret)
             api = tweepy.API(auth)
-
-            post = f"{post_data['title']}\n\n{post_data['description']}\nShared on : {post_data['entry']['published']}\n{post_data['hashtags']}"
-            post_picture = ''
-
-            client.create_tweet(text = post)
-        except: 
-            popup_message('Error', "Oops! an error occured while sharing your post to Twitter!")
+            if post_data['img_is_included']:
+                picture_url = post_data['entry_img_url']
+                post = f"{post_data['title']}\n\n{post_data['description']}\nShared on : {post_data['entry']['published']}\n{post_data['hashtags']}\n\n{picture_url}"
+                client.create_tweet(text=post)
+            else:
+                post = f"{post_data['title']}\n\n{post_data['description']}\nShared on : {post_data['entry']['published']}\n{post_data['hashtags']}"
+                client.create_tweet(text=post)
+        except Exception as e:
+            print("Error:", e)
+            popup_message('Error', "Oops! an error occurred while sharing your post to Twitter!")
         else:
             popup_message('Success', "Post shared to Twitter successfully!")
 

@@ -66,10 +66,25 @@ access_token = matches[5]
 access_token_secret = matches[6]
 
 
-client = tweepy.Client(bearer_token, api_key, api_key_secret, access_token, access_token_secret)
-auth = tweepy.OAuth1UserHandler(api_key, api_key_secret, access_token, access_token_secret)
+import tweepy
+import requests
+
+# Initialize Tweepy API object
+auth = tweepy.OAuthHandler(api_key, api_key_secret)
+auth.set_access_token(access_token, access_token_secret)
 api = tweepy.API(auth)
 
+# Image URL (replace with the actual URL of the image you want to share)
 img_url = "https://www.google.com/url?sa=i&url=https%3A%2F%2Fwallpapers.com%2Fdragon-ball-pictures&psig=AOvVaw1fsafKVhmgAYoUrrMTEoE5&ust=1710169917653000&source=images&cd=vfe&opi=89978449&ved=0CBMQjRxqFwoTCIiJqMX96YQDFQAAAAAdAAAAABAE"
 
-client.create_tweet(text = "Hello Maissen Belgacem ^^")
+# Download the image
+response = requests.get(img_url)
+image_data = response.content
+
+# Upload the image and get the media ID
+filename = "404.jpg"  # Assuming a filename for the downloaded image (optional)
+media = api.update_status_with_media(status="", filename=filename, file=image_data)
+media_id = media.media_id  # Extract the media ID for the uploaded image
+
+# Print the media ID for later use (replace with actual tweet creation code)
+print(f"Uploaded image media ID: {media_id}")
