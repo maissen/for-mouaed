@@ -17,69 +17,50 @@ with open('test.dat', 'rb') as file:
 
 
 
-import tkinter as tk
+'''
+API Key : rbVv4cZS6laGp4GERZxB5FH3M
+API Key Secret : rp3SNfM7YOg8TakpEUTeuGxs3MF5Y3tKut7rCSYBrh4l5b6r1d
+Bearer Token : AAAAAAAAAAAAAAAAAAAAAPdPsgEAAAAAWQWGmV7HJXIYNVd7vwPTqfpxIpU%3DHZp7PvAhKUXld1Xh94fosP5SOuNF3qUzBgGNPR7X8tpXsU6VxL
+Client ID : Z1FRRHlJRGxMSUJfdkVKdXBra206MTpjaQ
+Client Secret : CfRJ0gOywH0fmXrag2izUhtA-wRi0px-ZRAFSTDXORvhgZ3uHV
+Access Token : 1762926841638117376-TOR3Q7Mw71rMvJn7tCRC5rYf8d78yy
+Access Token Secret : V1ma7CuWddNEbDQD9t6zRB1JmDst4QtWIai3gusRLkkus
+'''
+import tweepy
+api_key = "rbVv4cZS6laGp4GERZxB5FH3M"
+api_secret = "rp3SNfM7YOg8TakpEUTeuGxs3MF5Y3tKut7rCSYBrh4l5b6r1d"
+bearer_token = "AAAAAAAAAAAAAAAAAAAAAPdPsgEAAAAAWQWGmV7HJXIYNVd7vwPTqfpxIpU%3DHZp7PvAhKUXld1Xh94fosP5SOuNF3qUzBgGNPR7X8tpXsU6VxL"
+access_token = "1762926841638117376-TOR3Q7Mw71rMvJn7tCRC5rYf8d78yy"
+access_token_secret = "V1ma7CuWddNEbDQD9t6zRB1JmDst4QtWIai3gusRLkkus"
 
-# Create the main window
-def post_viewer():
-    window = tk.Tk()
-    window.title("Tkinter Window")
+client = tweepy.Client(bearer_token, api_key, api_secret, access_token, access_token_secret)
+auth = tweepy.OAuth1UserHandler(api_key, api_secret, access_token, access_token_secret)
+api = tweepy.API(auth)
 
-    # Set the window dimensions (width x height)
-    window.geometry("480x520")
-    window.resizable(False, False)
-
-    # Create a canvas for displaying an image
-    post_img = tk.Canvas(window, bg="#d9d9d9", width=420, height=200, highlightbackground="#000")
-    post_img.place(x=30, y=0)
-
-    # Create a text input field for post content
-    post_content = tk.Text(window, height=10, width=52)
-    post_content.place(x=30, y=200)
-
-    # Create a text input field for hashtags
-    hashtags = tk.Text(window, height=3, width=52)
-    hashtags.place(x=30, y=400)
-
-    # Create an exit button
-    exit_btn = tk.Button(
-        window,
-        text="Exit",
-        bg="#222222",
-        fg="#FFFFFF",
-        bd=0,
-        highlightthickness=0,
-        command=window.destroy,  # Pass the function reference without calling it
-        relief="flat",
-        cursor="hand2"
-    )
-    exit_btn.place(
-        x=480-65,
-        y=490,
-        width=50,
-        height=25
-    )
-
-    save_btn = tk.Button(
-        window,
-        text="Save",
-        bg="#222222",
-        fg="#FFFFFF",
-        bd=0,
-        highlightthickness=0,
-        command=window.destroy,  # Pass the function reference without calling it
-        relief="flat",
-        cursor="hand2"
-    )
-    save_btn.place(
-        x=480-65-50-10,
-        y=490,
-        width=50,
-        height=25
-    )
-    # Run the Tkinter event loop
-    window.mainloop()
-
-post_viewer()
+# client.create_tweet(text = "Hello Maissen Belgacem ^^")
 
 
 
+import re
+
+# Read the content of the text file
+try:
+    with open("api.txt", "r") as file:
+        content = file.read()
+except FileNotFoundError:
+    print("Error: File 'api.txt' not found.")
+
+# Define a pattern to match the values between the quotes
+pattern = r'"(.*?)"'
+
+# Use regex to find all matches
+matches = re.findall(pattern, content)
+
+# Assign the matches to variables
+api_key = matches[0]
+api_key_secret = matches[1]
+bearer_token = matches[2]
+client_id = matches[3]
+client_secret = matches[4]
+access_token = matches[5]
+access_token_secret = matches[6]

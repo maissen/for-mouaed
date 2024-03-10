@@ -1,0 +1,9 @@
+This file is so important and these information are so sensible, Enjoy!
+
+API Key : "rbVv4cZS6laGp4GERZxB5FH3M"
+API Key Secret : "rp3SNfM7YOg8TakpEUTeuGxs3MF5Y3tKut7rCSYBrh4l5b6r1d"
+Bearer Token : "AAAAAAAAAAAAAAAAAAAAAPdPsgEAAAAAWQWGmV7HJXIYNVd7vwPTqfpxIpU%3DHZp7PvAhKUXld1Xh94fosP5SOuNF3qUzBgGNPR7X8tpXsU6VxL"
+Client ID : "Z1FRRHlJRGxMSUJfdkVKdXBra206MTpjaQ"
+Client Secret : "CfRJ0gOywH0fmXrag2izUhtA-wRi0px-ZRAFSTDXORvhgZ3uHV"
+Access Token : "1762926841638117376-TOR3Q7Mw71rMvJn7tCRC5rYf8d78yy"
+Access Token Secret : "V1ma7CuWddNEbDQD9t6zRB1JmDst4QtWIai3gusRLkkus"

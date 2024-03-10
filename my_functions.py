@@ -10,7 +10,9 @@ import webbrowser
 import requests
 from io import BytesIO
 import os
-from datetime import datetime
+from datetime import datetime        
+import re
+
 
 def delete_post_from_queue(post, queue_btn):
     try:
@@ -27,7 +29,7 @@ def delete_post_from_queue(post, queue_btn):
     queue_btn.invoke()
 
 
-def add_to_queue(entry, hashtags, title, description, image):
+def add_to_queue(entry, hashtags, title, description, img_is_included, entry_img_url):
     try:
         if os.path.exists('queue_list.dat') and os.path.getsize('queue_list.dat') > 0:
             with open('queue_list.dat', 'rb') as file:
@@ -35,8 +37,12 @@ def add_to_queue(entry, hashtags, title, description, image):
         else:
             # print("File 'queue_list.dat' is empty or doesn't exist. Initializing queue_list as an empty list.")
             queue_list = []
-
-        queue_list.insert(0, {"entry": entry,"title": title, "description": description, "hashtags": hashtags, "image": image})
+        
+        print("adding to queue : img is included : ", img_is_included)
+        if img_is_included:
+            queue_list.insert(0, {"entry": entry,"title": title, "description": description, "hashtags": hashtags, 'img_is_included': img_is_included, 'entry_img_url': entry_img_url})
+        else:
+            queue_list.insert(0, {"entry": entry,"title": title, "description": description, "hashtags": hashtags, 'img_is_included': img_is_included, 'entry_img_url': ''})
 
         with open('queue_list.dat', 'wb') as file:
             pickle.dump(queue_list, file)
@@ -153,6 +159,37 @@ def popup_message(title, message):
 
     # Schedule the closing of the popup after 3500 milliseconds (3.5 seconds)
     popup.after(3500, popup.destroy)
+
+
+def share_post(post_data):
+    try:
+        with open("api.txt", "r") as file:
+            content = file.read()
+    except FileNotFoundError:
+        popup_message("Error", "Please check your 'api.txt' file!")
+    else:
+        pattern = r'"(.*?)"' # Define a pattern to match the values between the quotes
+        matches = re.findall(pattern, content) # Use regex to find all matches
+        api_key = matches[0]
+        api_key_secret = matches[1]
+        bearer_token = matches[2]
+        client_id = matches[3]
+        client_secret = matches[4]
+        access_token = matches[5]
+        access_token_secret = matches[6]
+        try:
+            client = tweepy.Client(bearer_token, api_key, api_secret, access_token, access_token_secret)
+            auth = tweepy.OAuth1UserHandler(api_key, api_secret, access_token, access_token_secret)
+            api = tweepy.API(auth)
+
+            post = f"{post_data['title']}\n\n{post_data['description']}\nShared on : {post_data['entry']['published']}\n{post_data['hashtags']}"
+            post_picture = ''
+
+            client.create_tweet(text = post)
+        except: 
+            popup_message('Error', "Oops! an error occured while sharing your post to Twitter!")
+        else:
+            popup_message('Success', "Post shared to Twitter successfully!")
 
 
 def save_rss(saved_links_from_file, rss_title, rss_link):
@@ -722,18 +759,18 @@ def load_queue_frame(queue_frame, queue_btn):
             height=25
         )
 
-        push_post_from_queue = tk.Button(
+        share_post_from_queue = tk.Button(
             post,
             text="P",
             bg="#222222",
             fg="#FFFFFF",
             bd=0,
             highlightthickness=0,
-            command=lambda: print("push_post_from_queue clicked"),
+            command=lambda: share_post(queue_data[i]),
             relief="flat",
             cursor="hand2"
         )
-        push_post_from_queue.place(
+        share_post_from_queue.place(
             x=992-25*2-10,
             y=9,
             width=25,
@@ -746,9 +783,9 @@ def load_queue_frame(queue_frame, queue_btn):
         # Create the canvas
         entry_img_container = Canvas(post, bg="#d7d9e5", width=180, height=130, highlightbackground="#d9d9d9")  # Set desired width and height
         entry_img_container.place(x=0, y=0)  # Set desired position
-        entry_img_url = get_entry_picture(queue_data[i]['entry'])
-        if entry_img_url is not None:
-            # print('This entry has a picture!')
+        if queue_data[i]['img_is_included']:
+            entry_img_url = queue_data[i]['entry_img_url']
+            print('img is included')
             # Load the image from the URL
             response = requests.get(entry_img_url)
             image_data = response.content
@@ -776,6 +813,7 @@ def load_queue_frame(queue_frame, queue_btn):
             # Make sure to keep a reference to the photo object to prevent it from being garbage collected
             entry_img_container.photo = photo
         else:
+            print('img is not included')
             # print('This entry doesn\'t have a picture!')
             # Load a placeholder image from the local file
             placeholder_image = Image.open("404.jpg")
@@ -1052,6 +1090,18 @@ def load_feed_frame(feed_frame, feed_btn):
             # Create the canvas
             entry_img_container = Canvas(feed_frame, bg="#d7d9e5", width=379, height=172)  # Set desired width and height
             entry_img_container.place(x=657, y=23)  # Set desired position
+
+            checkbox_state = tk.BooleanVar()
+            checkbox_state.set(False)  # Set initial value to False
+
+            def show_state():
+                print("Checkbox state:", checkbox_state.get())
+
+            # Create the checkbox
+            checkbox = tk.Checkbutton(entry_img_container, text="Include picture:", variable=checkbox_state, command=show_state, bg='#d9d9d9')
+            checkbox.place(x=5, y=150)
+            
+
             # Load the image from the URL
             response = requests.get(entry_img_url)
             image_data = response.content
@@ -1079,6 +1129,7 @@ def load_feed_frame(feed_frame, feed_btn):
             # Make sure to keep a reference to the photo object to prevent it from being garbage collected
             entry_img_container.photo = photo
         else:
+            img_is_included = False
             # print('This entry doesn\'t have a picture!')
             # Create the canvas
             entry_img_container = Canvas(feed_frame, bg="#d7d9e5", width=379, height=172)  # Set desired width and height
@@ -1132,7 +1183,7 @@ def load_feed_frame(feed_frame, feed_btn):
         fg="#FFFFFF",
         bd=0,
         highlightthickness=0,
-        command=lambda: add_to_queue(entry, hashtags_entry.get("1.0", "end-1c"), entry_title.get("1.0", "end-1c"), entry_description.get("1.0", "end-1c"), image),
+        command=lambda: add_to_queue(entry, hashtags_entry.get("1.0", "end-1c"), entry_title.get("1.0", "end-1c"), entry_description.get("1.0", "end-1c"), checkbox_state.get(), entry_img_url),
         relief="flat",
         cursor="hand2"
         )
