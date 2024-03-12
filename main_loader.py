@@ -26,7 +26,7 @@ def main_loader():
         else:
             play_notification_sound()
             # Delay for the sound to finish playing before closing the window
-            window.after(2000, lambda: window.destroy())
+            window.after(2000, lambda: (window.destroy(), load_main_window()))
 
     def play_notification_sound():
         pygame.mixer.init()
@@ -70,4 +70,3 @@ def main_loader():
 
     window.mainloop()
 
-main_loader()
