@@ -1,7 +1,7 @@
 from tkinter import Tk, Canvas
 from PIL import Image, ImageTk, ImageSequence
 from main_window import load_main_window
-from playsound import playsound
+import pygame.mixer
 
 # Global variables
 global_image = None
@@ -24,8 +24,14 @@ def main_loader():
             canvas.itemconfig(image_item, image=global_image[frame_idx])
             window.after(50, update_frame, canvas, image_item)
         else:
-            # Play notification sound when GIF finishes
-            playsound("Twitter Notification Sound Effect.mp3")
+            play_notification_sound()
+            # Delay for the sound to finish playing before closing the window
+            window.after(2000, lambda: window.destroy())
+
+    def play_notification_sound():
+        pygame.mixer.init()
+        pygame.mixer.music.load("Twitter Notification Sound Effect.mp3")
+        pygame.mixer.music.play()
 
     window = Tk()
 
@@ -61,8 +67,6 @@ def main_loader():
 
     # Start updating the frames
     update_frame(canvas, image_item)
-
-    window.after(10000, lambda: (window.destroy(), load_main_window()))
 
     window.mainloop()
 
