@@ -13,6 +13,8 @@ import os
 from datetime import datetime        
 import re
 import tweepy
+import traceback
+import sys
 
 def open_txt_file(file_name):
     try:
@@ -176,7 +178,7 @@ def popup_message(title, message):
     popup.after(3500, popup.destroy)
 
 
-def share_post(post_data):
+def share_post(entry, hashtags, title, description, img_is_included, entry_img_url):
     try:
         with open("api.txt", "r") as file:
             content = file.read()
@@ -198,32 +200,38 @@ def share_post(post_data):
             auth = tweepy.OAuth1UserHandler(api_key, api_key_secret, access_token, access_token_secret)
             api = tweepy.API(auth)
 
-            hashtags = post_data['hashtags'].split()
-            formatted_hashtags = []
-            for hashtag in hashtags:
-                formatted_hashtags.append("#" + hashtag + "\n")
+            # Split the string into individual words
+            hashtags_list = hashtags.split()
+
+            # Add "#" before each word
+            formatted_hashtags = ["#" + hashtag for hashtag in hashtags_list]
+
+            # Join the words back together
             formatted_hashtags_str = " ".join(formatted_hashtags)
 
-            pub_date_datetime = datetime.strptime(post_data['entry']['published'], "%a, %d %b %Y %H:%M:%S %z")
-            pub_date_formatted = f"{pub_date_datetime.strftime("%d %b %Y")}"
+            print(formatted_hashtags_str)
 
-            if post_data['img_is_included']:
-                picture_url = post_data['entry_img_url']
-                post = f"{post_data['title']}\n\n{post_data['description']}\nShared on : {pub_date_formatted}\n{formatted_hashtags_str}\n\n{picture_url}"
-                client.create_tweet(text=post)
+            pub_date_datetime = datetime.strptime(entry['published'], "%a, %d %b %Y %H:%M:%S %z")
+            pub_date_formatted = pub_date_datetime.strftime("%d %b %Y")
+
+            post = f"{title}\n\n{description}\nDetailed analysis later on meduim: medium.com/@mouayedusa\n\n{formatted_hashtags_str}"
+            if (len(post) > 280):
+                popup_message("Error", "The text length is up to 280 caracters!")
             else:
-                post = f"{post_data['title']}\n\n{post_data['description']}\nShared on : {pub_date_formatted}\n{formatted_hashtags_str}"
-                client.create_tweet(text=post)
+                if img_is_included:
+                    picture_url = entry_img_url
+                    client.create_tweet(text=post)
+                else:
+                    client.create_tweet(text=post)
 
-                
         except Exception as e:
-            print("Error:", e)
+            traceback.print_exc(file=sys.stderr)
             popup_message('Error', "Oops! an error occurred while sharing your post to Twitter!")
         else:
             popup_message('Success', "Post shared to Twitter successfully!")
 
 
-def push_posts(queue_data):
+def push_posts(aadd):
     for i in range(len(queue_data)):
         share_post(queue_data[i])
         print(f"Post num {i} is shared successfully!")
@@ -885,7 +893,7 @@ def load_sources_frame(sources_frame, feed_btn):
 #             fg="#FFFFFF",
 #             bd=0,
 #             highlightthickness=0,
-#             command=lambda: push_posts(queue_data),
+#             command=lambda: push_posts(aadd),
 #             relief="flat",
 #             cursor="hand2"
 #         )
@@ -1213,18 +1221,19 @@ def load_feed_frame(feed_frame, feed_btn):
             height=46.0
         )
 
-        add_to_queue_btn = Button(
+        share_post_btn = Button(
         feed_frame,
-        text="Add to Queue",
+        text="Share",
         bg="#222222",
         fg="#FFFFFF",
         bd=0,
         highlightthickness=0,
-        command=lambda: add_to_queue(entry, hashtags_entry.get("1.0", "end-1c"), entry_title.get("1.0", "end-1c"), entry_description.get("1.0", "end-1c"), checkbox_state.get(), entry_img_url),
+        # command=lambda: add_to_queue(entry, hashtags_entry.get("1.0", "end-1c"), entry_title.get("1.0", "end-1c"), entry_description.get("1.0", "end-1c"), checkbox_state.get(), entry_img_url),
+        command=lambda: share_post(entry, hashtags_entry.get("1.0", "end-1c"), entry_title.get("1.0", "end-1c"), entry_description.get("1.0", "end-1c"), checkbox_state.get(), entry_img_url),
         relief="flat",
         cursor="hand2"
         )
-        add_to_queue_btn.place(
+        share_post_btn.place(
             x=854,
             y=575.0,
             width=182.0,
