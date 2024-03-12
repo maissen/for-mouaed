@@ -16,15 +16,16 @@ import tweepy
 import traceback
 import sys
 from plyer import notification
+import winsound
 
 def push_notification_without_image(title, message):
     notification.notify(
         title=title,
         message=message,
-        app_icon=None,  # You can provide an icon path here if needed
-        timeout=5,  # Duration to display the notification in seconds
+        app_icon="img/twitter.ico",  # You can provide an icon path here if needed
+        timeout=8,  # Duration to display the notification in seconds
     )
-
+    # winsound.PlaySound("Twitter-Notification-Sound-Effect.wav", winsound.SND_FILENAME)
 
 
 def open_txt_file(file_name):
@@ -228,7 +229,7 @@ def share_post(entry, hashtags, title, description, img_is_included, entry_img_u
             post = f"{title}\n\n{description}\nDetailed analysis later on meduim: medium.com/@mouayedusa\n\n{formatted_hashtags_str}"
             if (len(post) > 280):
                 popup_message("Error", "The text length is up to 280 caracters!")
-                push_notification_without_image('Twitter', "Couldn't share the post!\nThe text length is up to 280 caracters!")
+                push_notification_without_image('Twitter Bot', "Couldn't share the post!\nThe text length is up to 280 caracters!")
             else:
                 if img_is_included:
                     picture_url = entry_img_url
@@ -239,10 +240,10 @@ def share_post(entry, hashtags, title, description, img_is_included, entry_img_u
         except Exception as e:
             traceback.print_exc(file=sys.stderr)
             popup_message('Error', "Oops! an error occurred while sharing your post to Twitter!")
-            push_notification_without_image('Twitter', "Oops! an error occurred while sharing your post to Twitter!")
+            push_notification_without_image('Twitter Bot', "Oops! an error occurred while sharing your post to Twitter!")
         else:
             popup_message('Success', "Post shared to Twitter successfully!")
-            push_notification_without_image('Twitter', "Post shared to Twitter successfully!")
+            push_notification_without_image('Twitter Bot', "Post shared to Twitter successfully!")
 
 
 def push_posts(aadd):
@@ -544,19 +545,18 @@ def parse_rss(saved_links_from_file, feed_btn):
                     if(number_of_parsed_entries > 0):
                         update_variables(x=x, parsed_title=selected_title, number_of_parsed_entries=number_of_parsed_entries)
                         feed_btn.invoke()
-                        push_notification_without_image('Twitter', f'Parsing process of \'{source["title"]}\' has finished!')
+                        push_notification_without_image('Twitter Bot', f'Parsing process of \'{source["title"]}\' has finished!')
                     else:
                         popup_message("Error", f"No entries from {selected_title}, you can try later!")
-                        push_notification_without_image('Twitter', f"No entries from {selected_title}, you can try later!")
+                        push_notification_without_image('Twitter Bot', f"No entries from {selected_title}, you can try later!")
                 except:
                     popup_message("Error", "Invalid rss link! Please verify the link.")
-                    push_notification_without_image('Twitter', "Invalid rss link! Please verify the link.")
+                    push_notification_without_image('Twitter Bot', "Invalid rss link! Please verify the link.")
     
 
 def load_sources_frame(sources_frame, feed_btn):
     destroy_frame_child_elements(sources_frame)
 
-    # Add elements to the parent sources_frame
     sources_frame.create_text(
         492.0 - 186.0,
         129.0 - 14.0,
@@ -575,18 +575,37 @@ def load_sources_frame(sources_frame, feed_btn):
         font=("Inter", 15)
     )
 
+    sources_frame.create_rectangle(
+        492.0 - 186.0,  # x-coordinate (adjusted)
+        157.0 - 14.0,   # y-coordinate (adjusted)
+        492.0 - 186.0 + 445.0,  # x-coordinate + width (adjusted)
+        157.0 - 14.0 + 33.0,    # y-coordinate + height (adjusted)
+        fill="#BEBEBE",
+        outline=""
+    )
+
     rss_link = tk.Entry(
         sources_frame,
         bd=0,
-        bg="#BEBEBE",
+        bg="#BEBEBE", 
         fg="#000716",
-        highlightthickness=0
+        highlightthickness=0,
+        font=("Inter", 10)
     )
     rss_link.place(
-        x=492.0 - 186.0,
+        x=492.0 - 176.0,
         y=157.0 - 14.0,
-        width=439.0,
+        width=425.0,
         height=33.0
+    )
+
+    sources_frame.create_rectangle(
+        492.0 - 186.0,            # x-coordinate (adjusted)
+        265.0 - 14.0,             # y-coordinate (adjusted)
+        492.0 - 186.0 + 445.0,    # x-coordinate + width (adjusted)
+        265.0 - 14.0 + 33.0,      # y-coordinate + height (adjusted)
+        fill="#BEBEBE",
+        outline=""
     )
 
     rss_title = tk.Entry(
@@ -594,12 +613,13 @@ def load_sources_frame(sources_frame, feed_btn):
         bd=0,
         bg="#BEBEBE",
         fg="#000716",
-        highlightthickness=0
+        highlightthickness=0,
+        font=("Inter", 10)
     )
     rss_title.place(
-        x=492.0 - 186.0,
+        x=492.0 - 176.0,
         y=265.0 - 14.0,
-        width=439.0,
+        width=425.0,
         height=33.0
     )
 
@@ -877,7 +897,7 @@ def load_sources_frame(sources_frame, feed_btn):
 #             print('img is not included')
 #             # print('This entry doesn\'t have a picture!')
 #             # Load a placeholder image from the local file
-#             placeholder_image = Image.open("404.jpg")
+#             placeholder_image = Image.open("img/404.png")
 #             # Get the dimensions of the placeholder image
 #             width, height = placeholder_image.size
 #             # Calculate the scaling factor to fit the image within the canvas while maintaining aspect ratio
@@ -1196,7 +1216,7 @@ def load_feed_frame(feed_frame, feed_btn):
             entry_img_container = Canvas(feed_frame, bg="#d7d9e5", width=379, height=172)  # Set desired width and height
             entry_img_container.place(x=657, y=23)  # Set desired position
             # Load a placeholder image from the local file
-            placeholder_image = Image.open("404.jpg")
+            placeholder_image = Image.open("img/404.png")
             # Get the dimensions of the placeholder image
             width, height = placeholder_image.size
             # Calculate the scaling factor to fit the image within the canvas while maintaining aspect ratio

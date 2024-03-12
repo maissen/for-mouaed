@@ -13,6 +13,9 @@ from tkinter import filedialog
 def load_main_window():
     create_variables()
     window = Tk()
+    window.title("Twitter bot - Maissen Belgacem")
+    window.iconbitmap("img/twitter.ico")
+    window.iconbitmap("img/twitter.ico")
 
     window_width = 1250
     window_height = 670
@@ -201,4 +204,4 @@ def load_main_window():
 
     window.mainloop()
 
-# load_main_window()
+load_main_window()
