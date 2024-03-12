@@ -1,6 +1,11 @@
-from tkinter import Tk, Canvas, Entry, Text, Button, PhotoImage
+from tkinter import Tk, Canvas
+from PIL import Image, ImageTk, ImageSequence
 from main_window import load_main_window
+from playsound import playsound
 
+# Global variables
+global_image = None
+frame_idx = 0
 
 def main_loader():
     def on_drag(event):
@@ -12,10 +17,20 @@ def main_loader():
         window._offset_x = event.x
         window._offset_y = event.y
 
+    def update_frame(canvas, image_item):
+        global global_image, frame_idx
+        frame_idx += 1
+        if frame_idx < len(global_image):
+            canvas.itemconfig(image_item, image=global_image[frame_idx])
+            window.after(50, update_frame, canvas, image_item)
+        else:
+            # Play notification sound when GIF finishes
+            playsound("Twitter Notification Sound Effect.mp3")
+
     window = Tk()
 
-    window_width = 630
-    window_height = 360
+    window_width = 800
+    window_height = 600
 
     # Get the screen width and height
     screen_width = window.winfo_screenwidth()
@@ -31,46 +46,24 @@ def main_loader():
     # Hide the title bar
     window.overrideredirect(True)
 
-    canvas = Canvas(
-        window,
-        bg="#FFFFFF",
-        height=360,
-        width=630,
-        bd=0,
-        highlightthickness=0,
-        relief="ridge"
-    )
+    global global_image
+    gif_frames = Image.open("loader.gif")
+    global_image = [ImageTk.PhotoImage(frame) for frame in ImageSequence.Iterator(gif_frames)]
 
-    canvas.place(x=0, y=0)
-    canvas.create_rectangle(
-        0.0,
-        0.0,
-        630.0,
-        360.0,
-        fill="#062882",
-        outline="")
-
-    canvas.create_rectangle(
-        256.0,
-        92.0,
-        371.0,
-        207.0,
-        fill="#8E1515",
-        outline="")
-
-    canvas.create_text(
-        237.0,
-        238.0,
-        anchor="nw",
-        text="Loading",
-        fill="#FFFFFF",
-        font=("Inter", 36 * -1)
-    )
+    # Create a canvas to display the image
+    canvas = Canvas(window, width=window_width, height=window_height, bg="#FFFFFF", highlightthickness=0)
+    image_item = canvas.create_image(window_width // 2, window_height // 2, image=global_image[frame_idx])
+    canvas.pack()
 
     # Bind mouse events for dragging
-    window.bind("<B1-Motion>", on_drag)
-    window.bind("<Button-1>", start_drag)
-    window.after(5000, lambda: (window.destroy(), load_main_window()))
+    canvas.bind("<B1-Motion>", on_drag)
+    canvas.bind("<Button-1>", start_drag)
 
-    window.resizable(False, False)
+    # Start updating the frames
+    update_frame(canvas, image_item)
+
+    window.after(10000, lambda: (window.destroy(), load_main_window()))
+
     window.mainloop()
+
+main_loader()
