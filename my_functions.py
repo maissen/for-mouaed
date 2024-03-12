@@ -15,6 +15,17 @@ import re
 import tweepy
 import traceback
 import sys
+from plyer import notification
+
+def push_notification_without_image(title, message):
+    notification.notify(
+        title=title,
+        message=message,
+        app_icon=None,  # You can provide an icon path here if needed
+        timeout=5,  # Duration to display the notification in seconds
+    )
+
+
 
 def open_txt_file(file_name):
     try:
@@ -217,6 +228,7 @@ def share_post(entry, hashtags, title, description, img_is_included, entry_img_u
             post = f"{title}\n\n{description}\nDetailed analysis later on meduim: medium.com/@mouayedusa\n\n{formatted_hashtags_str}"
             if (len(post) > 280):
                 popup_message("Error", "The text length is up to 280 caracters!")
+                push_notification_without_image('Twitter', "Couldn't share the post!\nThe text length is up to 280 caracters!")
             else:
                 if img_is_included:
                     picture_url = entry_img_url
@@ -227,8 +239,10 @@ def share_post(entry, hashtags, title, description, img_is_included, entry_img_u
         except Exception as e:
             traceback.print_exc(file=sys.stderr)
             popup_message('Error', "Oops! an error occurred while sharing your post to Twitter!")
+            push_notification_without_image('Twitter', "Oops! an error occurred while sharing your post to Twitter!")
         else:
             popup_message('Success', "Post shared to Twitter successfully!")
+            push_notification_without_image('Twitter', "Post shared to Twitter successfully!")
 
 
 def push_posts(aadd):
@@ -530,11 +544,13 @@ def parse_rss(saved_links_from_file, feed_btn):
                     if(number_of_parsed_entries > 0):
                         update_variables(x=x, parsed_title=selected_title, number_of_parsed_entries=number_of_parsed_entries)
                         feed_btn.invoke()
-                        
+                        push_notification_without_image('Twitter', f'Parsing process of \'{source["title"]}\' has finished!')
                     else:
                         popup_message("Error", f"No entries from {selected_title}, you can try later!")
+                        push_notification_without_image('Twitter', f"No entries from {selected_title}, you can try later!")
                 except:
                     popup_message("Error", "Invalid rss link! Please verify the link.")
+                    push_notification_without_image('Twitter', "Invalid rss link! Please verify the link.")
     
 
 def load_sources_frame(sources_frame, feed_btn):
@@ -588,7 +604,7 @@ def load_sources_frame(sources_frame, feed_btn):
     )
 
     sources_frame.create_text(
-        623.0 - 186.0,
+        623.0 - 215.0,
         46.0 - 14.0,
         anchor="nw",
         text="Add new source",

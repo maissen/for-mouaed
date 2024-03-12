@@ -163,8 +163,8 @@ def load_main_window():
 
     ##############################################################################################################################
     # Create the queue_frame
-    queue_frame = tk.Frame(window, bg="#d9d9d9", width=1253, height=644, highlightthickness=0, bd=0)
-    queue_frame.place(x=1239.0, y=659.0)
+    # queue_frame = tk.Frame(window, bg="#d9d9d9", width=1253, height=644, highlightthickness=0, bd=0)
+    # queue_frame.place(x=1239.0, y=659.0)
 
     
     ##############################################################################################################################
