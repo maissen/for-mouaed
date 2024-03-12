@@ -5,6 +5,7 @@ import pickle
 import webbrowser
 from my_functions import *
 import feedparser
+from tkinter import filedialog
 
 
 
@@ -92,25 +93,43 @@ def load_main_window():
         height=36.0
     )
 
-    queue_btn = Button(
+    hashtags_btn = Button(
         window,
-        text="Queue",
+        text="Hashtags",
         bg="#222222",
         fg="#FFFFFF",
         bd=0,
         highlightthickness=0,
-        command=lambda: button_click(queue_btn),
+        command=lambda: button_click(hashtags_btn),
         relief="flat",
         cursor="hand2"
     )
-    queue_btn.place(
+    hashtags_btn.place(
         x=12.0,
         y=136.0,
         width=151.0,
         height=36.0
     )
 
-    buttons = [sources_btn, feed_btn, queue_btn]
+    api_btn = Button(
+        window,
+        text="API",
+        bg="#222222",
+        fg="#FFFFFF",
+        bd=0,
+        highlightthickness=0,
+        command=lambda: button_click(api_btn),
+        relief="flat",
+        cursor="hand2"
+    )
+    api_btn.place(
+        x=12.0,
+        y=136 + (136-75),
+        width=151.0,
+        height=36.0
+    )
+
+    buttons = [sources_btn, feed_btn, hashtags_btn, api_btn]
 
     exit_btn = Button(
         window,
@@ -161,21 +180,20 @@ def load_main_window():
         
             sources_frame.place_configure(x=186.0, y=14.0)
             feed_frame.place_configure(x=1000.0, y=1000.0)
-            queue_frame.place_configure(x=1000.0, y=1000.0)
+            # queue_frame.place_configure(x=1000.0, y=1000.0)
 
         elif button == feed_btn:
             load_feed_frame(feed_frame, feed_btn)
         
             feed_frame.place_configure(x=186.0, y=14.0)
             sources_frame.place_configure(x=1000.0, y=1000.0)
-            queue_frame.place_configure(x=1000.0, y=1000.0)
+            # queue_frame.place_configure(x=1000.0, y=1000.0)
         
-        elif button == queue_btn:
-            load_queue_frame(queue_frame, queue_btn)
-        
-            feed_frame.place_configure(x=1000.0, y=1000.0)
-            sources_frame.place_configure(x=1000.0, y=1000.0)
-            queue_frame.place_configure(x=186.0, y=14.0)
+        elif button == hashtags_btn:
+            open_txt_file("Hashtags.txt")
+
+        elif button == api_btn:
+            open_txt_file("api.txt")
 
     window.resizable(False, False)
     # Automatically click the "Sources" button
