@@ -91,7 +91,7 @@ def load_main_window():
     )
     feed_btn.place(
         x=12.0,
-        y=75.0,
+        y=64.0,
         width=151.0,
         height=36.0
     )
@@ -109,7 +109,7 @@ def load_main_window():
     )
     hashtags_btn.place(
         x=12.0,
-        y=136.0,
+        y=114,
         width=151.0,
         height=36.0
     )
@@ -127,7 +127,7 @@ def load_main_window():
     )
     api_btn.place(
         x=12.0,
-        y=136 + (136-75),
+        y=164,
         width=151.0,
         height=36.0
     )
@@ -145,7 +145,7 @@ def load_main_window():
     )
     drafts_btn.place(
         x=12.0,
-        y=136 + (136-75) + 61,
+        y=214,
         width=151.0,
         height=36.0
     )
@@ -183,7 +183,7 @@ def load_main_window():
 
     ##############################################################################################################################
     # drafts section
-    drafts_frame = tk.Canvas(window, bg="red", width=1050, height=644, highlightthickness=0, bd=0)
+    drafts_frame = tk.Canvas(window, bg="#d9d9d9", width=1050, height=644, highlightthickness=0, bd=0)
     drafts_frame.place(x=1239.0, y=659.0)
 
 

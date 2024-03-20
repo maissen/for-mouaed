@@ -592,13 +592,6 @@ def parse_rss(saved_links_from_file, feed_btn):
                     push_notification_without_image('Twitter Bot', "Invalid rss link! Please verify the link.")
     
 
-def copy_to_clipboard(entry, delete_draft_btn):
-    content = entry.get("1.0", "end-1c")  # Get content of the entry text widget
-    pyperclip.copy(content)  # Copy content to clipboard
-    push_notification_without_image("Twitter Bot", "Text is copied to Clipboard!")
-    delete_draft_btn.invoke()
-
-
 def load_sources_frame(sources_frame, feed_btn):
     destroy_frame_child_elements(sources_frame)
 
@@ -1369,11 +1362,18 @@ def load_feed_frame(feed_frame, feed_btn):
 
 current_draft_index = 0  # Initialize the current draft index
 drafts = []  # Initialize the drafts list
+def update_draft_label():
+    global current_draft_index, drafts
+    total_drafts = len(drafts)
+    draft_label.config(text=f"Draft {current_draft_index + 1} of {total_drafts} drafts")
+
+
 def next_draft():
     global current_draft_index, drafts
     current_draft_index = (current_draft_index + 1) % len(drafts)
     draft_input.delete("1.0", tk.END)
     draft_input.insert("1.0", drafts[current_draft_index])
+    update_draft_label()  # Update the draft label after navigating to the next draft
 
 
 def previous_draft():
@@ -1381,6 +1381,13 @@ def previous_draft():
     current_draft_index = (current_draft_index - 1) % len(drafts)
     draft_input.delete("1.0", tk.END)
     draft_input.insert("1.0", drafts[current_draft_index])
+    update_draft_label()  # Update the draft label after navigating to the previous draft
+
+
+def copy_to_clipboard(entry):
+    content = entry.get("1.0", "end-1c")  # Get content of the entry text widget
+    pyperclip.copy(content)  # Copy content to clipboard
+    push_notification_without_image("Twitter Bot", "Text is copied to Clipboard!")
 
 
 def delete_current_draft():
@@ -1452,7 +1459,7 @@ def load_drafts_frame(drafts_frame, drafts_btn):
         0,
         1050,
         644.0,
-        fill="green",
+        fill="#d9d9d9",
         outline=""
     )
 
@@ -1465,18 +1472,29 @@ def load_drafts_frame(drafts_frame, drafts_btn):
         font=("Inter", 24)
     )
 
-    draft_input = tk.Text(  # draft input
+    draft_input_bg = drafts_frame.create_rectangle(
+        15,      # x-coordinate of the top-left corner
+        100,     # y-coordinate of the top-left corner
+        1015,    # x-coordinate of the bottom-right corner
+        500,     # y-coordinate of the bottom-right corner
+        fill="#9597a8",  # Background color
+        outline=""       # No outline
+    )
+
+    # Create the input field
+    draft_input = tk.Text(
         drafts_frame,
         bd=0,
         bg="#9597a8",
         fg="#000",
-        highlightthickness=0
+        highlightthickness=0,
+        font=("Arial", 12)
     )
     draft_input.place(
-        x=15,
-        y=100,
-        width=1000,
-        height=400
+        x=25,    # Adjusted x-coordinate for the input field
+        y=110,   # Adjusted y-coordinate for the input field
+        width=980,
+        height=380
     )
 
     scrollbar_draft = tk.Scrollbar(drafts_frame, orient="vertical", width=13, troughcolor="#9597A8", bd=0, command=draft_input.yview)
@@ -1489,9 +1507,19 @@ def load_drafts_frame(drafts_frame, drafts_btn):
                 loaded_data = pickle.load(file)
                 if loaded_data:
                     drafts = loaded_data
+                    current_draft_index = 0  # Initialize current draft index
+                    total_drafts = len(drafts)
                     draft_input.insert("1.0", drafts[0])
 
-                    # Create "Previous Draft" button
+                    # Create label to display current draft number out of total drafts
+                    global draft_label
+                    draft_label = ttk.Label(drafts_frame, text=f"Draft {current_draft_index + 1} of {total_drafts} drafts", background="#9597a8")
+                    draft_label.place(x=15, y=73)
+                    # Apply padding to the label
+                    style = ttk.Style()
+                    style.configure("DraftLabel.TLabel", padding=(15, 5, 15, 5))
+                    draft_label.config(style="DraftLabel.TLabel")
+
                     previous_draft_btn = tk.Button(
                         drafts_frame,
                         text="Previous Draft",
@@ -1504,13 +1532,12 @@ def load_drafts_frame(drafts_frame, drafts_btn):
                         cursor="hand2"
                     )
                     previous_draft_btn.place(
-                        x=0,
+                        x=(1050 - 182 - 600) / 2,
                         y=575.0,
                         width=182.0,
                         height=46.0
                     )
 
-                    # Create "Next Draft" button
                     next_draft_btn = tk.Button(
                         drafts_frame,
                         text="Next Draft",
@@ -1523,7 +1550,7 @@ def load_drafts_frame(drafts_frame, drafts_btn):
                         cursor="hand2"
                     )
                     next_draft_btn.place(
-                        x=200,
+                        x=(1050 - 182 - 600) / 2 + 200,
                         y=575.0,
                         width=182.0,
                         height=46.0
@@ -1541,7 +1568,7 @@ def load_drafts_frame(drafts_frame, drafts_btn):
                         cursor="hand2"
                     )
                     delete_draft_btn.place(
-                        x=600,
+                        x=(1050 - 182 - 600) / 2 + 400,
                         y=575.0,
                         width=182.0,
                         height=46.0
@@ -1554,12 +1581,12 @@ def load_drafts_frame(drafts_frame, drafts_btn):
                         fg="#FFFFFF",
                         bd=0,
                         highlightthickness=0,
-                        command=lambda: copy_to_clipboard(draft_input, delete_draft_btn),
+                        command=lambda: copy_to_clipboard(draft_input),
                         relief="flat",
                         cursor="hand2"
                     )
                     copy_draft_btn.place(
-                        x=400,
+                        x=(1050 - 182 - 600) / 2 + 600,
                         y=575.0,
                         width=182.0,
                         height=46.0
@@ -1568,6 +1595,7 @@ def load_drafts_frame(drafts_frame, drafts_btn):
                     drafts = []
                     draft_input.insert("1.0", "File 'drafts.dat' is empty!")
                     
+                    # Center the copy button if no drafts exist
                     copy_draft_btn = tk.Button(
                         drafts_frame,
                         text="Copy to Clipboard",
@@ -1580,7 +1608,7 @@ def load_drafts_frame(drafts_frame, drafts_btn):
                         cursor="hand2"
                     )
                     copy_draft_btn.place(
-                        x=400,
+                        x=(1050 - 182 - 830) / 2 + 400,
                         y=575.0,
                         width=182.0,
                         height=46.0
