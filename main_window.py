@@ -132,7 +132,25 @@ def load_main_window():
         height=36.0
     )
 
-    buttons = [sources_btn, feed_btn, hashtags_btn, api_btn]
+    drafts_btn = Button(
+        window,
+        text="Drafts",
+        bg="#222222",
+        fg="#FFFFFF",
+        bd=0,
+        highlightthickness=0,
+        command=lambda: button_click(drafts_btn),
+        relief="flat",
+        cursor="hand2"
+    )
+    drafts_btn.place(
+        x=12.0,
+        y=136 + (136-75) + 61,
+        width=151.0,
+        height=36.0
+    )
+
+    buttons = [sources_btn, feed_btn, hashtags_btn, api_btn, drafts_btn]
 
     exit_btn = Button(
         window,
@@ -163,6 +181,11 @@ def load_main_window():
     feed_frame = tk.Canvas(window, bg="#d9d9d9", width=1050, height=644, highlightthickness=0, bd=0)
     feed_frame.place(x=1239.0, y=659.0)
 
+    ##############################################################################################################################
+    # drafts section
+    drafts_frame = tk.Canvas(window, bg="red", width=1050, height=644, highlightthickness=0, bd=0)
+    drafts_frame.place(x=1239.0, y=659.0)
+
 
     ##############################################################################################################################
     # Create the queue_frame
@@ -183,12 +206,22 @@ def load_main_window():
         
             sources_frame.place_configure(x=186.0, y=14.0)
             feed_frame.place_configure(x=1000.0, y=1000.0)
+            drafts_frame.place_configure(x=1000.0, y=1000.0)
             # queue_frame.place_configure(x=1000.0, y=1000.0)
 
         elif button == feed_btn:
             load_feed_frame(feed_frame, feed_btn)
         
             feed_frame.place_configure(x=186.0, y=14.0)
+            sources_frame.place_configure(x=1000.0, y=1000.0)
+            drafts_frame.place_configure(x=1000.0, y=1000.0)
+            # queue_frame.place_configure(x=1000.0, y=1000.0)
+
+        elif button == drafts_btn:
+            load_drafts_frame(drafts_frame, feed_btn)
+
+            drafts_frame.place_configure(x=186.0, y=14.0)
+            feed_frame.place_configure(x=1000.0, y=1000.0)
             sources_frame.place_configure(x=1000.0, y=1000.0)
             # queue_frame.place_configure(x=1000.0, y=1000.0)
         
@@ -204,4 +237,4 @@ def load_main_window():
 
     window.mainloop()
 
-# load_main_window()
+load_main_window()

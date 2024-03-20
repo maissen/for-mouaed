@@ -294,8 +294,6 @@ def popup_message(title, message):
 
 
 
-
-
 ##
 ## Main window
 def load_main_window():
