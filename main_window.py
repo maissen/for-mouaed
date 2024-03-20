@@ -237,4 +237,4 @@ def load_main_window():
 
     window.mainloop()
 
-load_main_window()
+# load_main_window()

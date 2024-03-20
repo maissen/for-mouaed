@@ -1,5 +1,5 @@
 import pickle
-from tkinter import Tk, Canvas, Entry, Button, Text, Scrollbar, Frame, Label
+from tkinter import Tk, Canvas, Entry, Button, Text, Scrollbar, Frame, Label, PhotoImage
 from tkinter.ttk import Combobox
 import tkinter as tk
 from tkinter import ttk
@@ -756,10 +756,20 @@ def load_feed_frame(feed_frame, feed_btn):
     fill="#9597a8",
     outline="")
 
+    # Open the image file
+    image = Image.open("icons8-save-48.png")
+
+    # Resize the image to fit the button size
+    image = image.resize((25, 25))  # Use "ANTIALIAS" instead of Image.ANTIALIAS
+
+    # Convert the resized image to a Tkinter-compatible format
+    icon_image = ImageTk.PhotoImage(image)
+
+    # Create the button with the image
     load_hashtags_btn = tk.Button(
         feed_frame,
-        text="L",
-        bg="#222222",
+        image=icon_image,  # Set the image
+        bg="#9597a8",
         fg="#FFFFFF",
         bd=0,
         highlightthickness=0,
@@ -767,12 +777,18 @@ def load_feed_frame(feed_frame, feed_btn):
         relief="flat",
         cursor="hand2"
     )
+
+    # Keep a reference to the image to prevent it from being garbage collected
+    load_hashtags_btn.image = icon_image
+
+    # Place the button
     load_hashtags_btn.place(
         x=997,
         y=443,
         width=30,
         height=30.0
     )
+
 
     feed_frame.create_rectangle( #summary
     657,
