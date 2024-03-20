@@ -248,41 +248,6 @@ def share_post(entry, hashtags, title, description, img_is_included, entry_img_u
             push_notification_without_image('Twitter Bot', "Post shared to Twitter successfully!")
 
 
-def save_draft(entry, hashtags, title, description, img_is_included, entry_img_url):
-    # Split the string into individual words
-    hashtags_list = hashtags.split()
-    # Add "#" before each word
-    formatted_hashtags = ["#" + hashtag for hashtag in hashtags_list]
-    # Join the words back together
-    formatted_hashtags_str = " ".join(formatted_hashtags)
-    print(formatted_hashtags_str)
-
-    # Create the draft
-    draft = f"{title}\n\n{description}\nDetailed analysis later on medium: medium.com/@mouayedusa\n\n{formatted_hashtags_str}"
-    
-    if len(draft) > 280:
-        popup_message("Error", "The text length is up to 280 characters!")
-        push_notification_without_image('Twitter Bot', "Couldn't save the draft!\nThe text length is up to 280 characters!")
-    else:
-        try:
-            # Try to open the file and read existing drafts
-            with open("drafts.dat", "rb") as file:
-                try:
-                    drafts = pickle.load(file)
-                except EOFError:  # Handle EOFError
-                    drafts = []
-        except FileNotFoundError:
-            # If the file doesn't exist, create an empty list
-            drafts = []
-
-        # Append the new draft to the list of drafts
-        drafts.append(draft)
-
-        # Write the updated list of drafts back to the file
-        with open("drafts.dat", "wb") as file:
-            pickle.dump(drafts, file)
-
-
 def push_posts(aadd):
     for i in range(len(queue_data)):
         share_post(queue_data[i])
@@ -1450,6 +1415,42 @@ def delete_draft_confirmation(drafts_btn):
     window.mainloop()
 
 
+def save_draft(entry, hashtags, title, description, img_is_included, entry_img_url):
+    # Split the string into individual words
+    hashtags_list = hashtags.split()
+    # Add "#" before each word
+    formatted_hashtags = ["#" + hashtag for hashtag in hashtags_list]
+    # Join the words back together
+    formatted_hashtags_str = " ".join(formatted_hashtags)
+    print(formatted_hashtags_str)
+
+    # Create the draft
+    draft = f"{title}\n\n{description}\nDetailed analysis later on medium: medium.com/@mouayedusa\n\n{formatted_hashtags_str}"
+    
+    if len(draft) > 280:
+        popup_message("Error", "The text length is up to 280 characters!")
+        push_notification_without_image('Twitter Bot', "Couldn't save the draft!\nThe text length is up to 280 characters!")
+    else:
+        try:
+            # Try to open the file and read existing drafts
+            with open("drafts.dat", "rb") as file:
+                try:
+                    drafts = pickle.load(file)
+                except EOFError:  # Handle EOFError
+                    drafts = []
+        except FileNotFoundError:
+            # If the file doesn't exist, create an empty list
+            drafts = []
+
+        # Append the new draft to the list of drafts
+        drafts.append(draft)
+
+        # Write the updated list of drafts back to the file
+        with open("drafts.dat", "wb") as file:
+            pickle.dump(drafts, file)
+            push_notification_without_image("Twitter Bot", "Draft is saved successfully!")
+
+
 def load_drafts_frame(drafts_frame, drafts_btn):
     global draft_input, drafts  # Declare draft_input and drafts as global variables
 
@@ -1488,7 +1489,7 @@ def load_drafts_frame(drafts_frame, drafts_btn):
         bg="#9597a8",
         fg="#000",
         highlightthickness=0,
-        font=("Arial", 12)
+        font=("Arial", 10)
     )
     draft_input.place(
         x=25,    # Adjusted x-coordinate for the input field
