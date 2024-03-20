@@ -401,50 +401,51 @@ def delete_confirm_window(saved_links_from_file, rss_source):
     # Run the main event loop
     window.mainloop()
 
-    def update_rss(saved_links_from_file, new_title, new_link, window):
-        # Check if new_title and new_link are not empty
-        if not new_title.strip() or not new_link.strip():
-            popup_message("Error", "Please enter both title and link!")
-            return
 
-        title_to_update = saved_links_from_file.get()
-        if title_to_update:
-            try:
-                with open("My_rss_sources.dat", "rb") as file:
-                    rss_sources = pickle.load(file)
-            except FileNotFoundError:
-                rss_sources = []
+def update_rss(saved_links_from_file, new_title, new_link, window):
+    # Check if new_title and new_link are not empty
+    if not new_title.strip() or not new_link.strip():
+        popup_message("Error", "Please enter both title and link!")
+        return
 
-            # Check if the new title or link already exists
-            for source in rss_sources:
-                if source["title"] != title_to_update:  # Skip the current title being updated
-                    if source["title"] == new_title:
-                        popup_message("Error", "RSS title already exists!")
-                        return
-                    if source["link"] == new_link:
-                        popup_message("Error", "RSS link already exists!")
-                        return
+    title_to_update = saved_links_from_file.get()
+    if title_to_update:
+        try:
+            with open("My_rss_sources.dat", "rb") as file:
+                rss_sources = pickle.load(file)
+        except FileNotFoundError:
+            rss_sources = []
 
-            # Update the title and link
-            for source in rss_sources:
-                if source["title"] == title_to_update:
-                    old_title = source["title"]
-                    old_link = source["link"]
+        # Check if the new title or link already exists
+        for source in rss_sources:
+            if source["title"] != title_to_update:  # Skip the current title being updated
+                if source["title"] == new_title:
+                    popup_message("Error", "RSS title already exists!")
+                    return
+                if source["link"] == new_link:
+                    popup_message("Error", "RSS link already exists!")
+                    return
 
-                    source["title"] = new_title
-                    source["link"] = new_link
-                    break
+        # Update the title and link
+        for source in rss_sources:
+            if source["title"] == title_to_update:
+                old_title = source["title"]
+                old_link = source["link"]
 
-            # Save the updated data back to the file
-            with open("My_rss_sources.dat", "wb") as file:
-                pickle.dump(rss_sources, file)
+                source["title"] = new_title
+                source["link"] = new_link
+                break
 
-            # Update the values in the combobox
-            saved_links_from_file["values"] = [source["title"] for source in rss_sources]
-            saved_links_from_file.set(new_title)
-            window.destroy()
-        else:
-            popup_message("Error", "No RSS title selected!")
+        # Save the updated data back to the file
+        with open("My_rss_sources.dat", "wb") as file:
+            pickle.dump(rss_sources, file)
+
+        # Update the values in the combobox
+        saved_links_from_file["values"] = [source["title"] for source in rss_sources]
+        saved_links_from_file.set(new_title)
+        window.destroy()
+    else:
+        popup_message("Error", "No RSS title selected!")
 
 
 def update_rss(saved_links_from_file, new_title, new_link, window):
@@ -591,9 +592,11 @@ def parse_rss(saved_links_from_file, feed_btn):
                     push_notification_without_image('Twitter Bot', "Invalid rss link! Please verify the link.")
     
 
-def copy_to_clipboard(entry):
+def copy_to_clipboard(entry, delete_draft_btn):
     content = entry.get("1.0", "end-1c")  # Get content of the entry text widget
     pyperclip.copy(content)  # Copy content to clipboard
+    push_notification_without_image("Twitter Bot", "Text is copied to Clipboard!")
+    delete_draft_btn.invoke()
 
 
 def load_sources_frame(sources_frame, feed_btn):
@@ -1366,20 +1369,81 @@ def load_feed_frame(feed_frame, feed_btn):
 
 current_draft_index = 0  # Initialize the current draft index
 drafts = []  # Initialize the drafts list
-
 def next_draft():
     global current_draft_index, drafts
-    current_draft_index = (current_draft_index + 1) % len(drafts)  # Increment the index, looping back to 0 if it exceeds the length
-    draft_input.delete("1.0", tk.END)  # Clear the current content of the text input
-    draft_input.insert("1.0", drafts[current_draft_index])  # Insert the next draft
+    current_draft_index = (current_draft_index + 1) % len(drafts)
+    draft_input.delete("1.0", tk.END)
+    draft_input.insert("1.0", drafts[current_draft_index])
+
 
 def previous_draft():
     global current_draft_index, drafts
-    current_draft_index = (current_draft_index - 1) % len(drafts)  # Decrement the index, looping back to the end if it goes below 0
-    draft_input.delete("1.0", tk.END)  # Clear the current content of the text input
-    draft_input.insert("1.0", drafts[current_draft_index])  # Insert the previous draft
+    current_draft_index = (current_draft_index - 1) % len(drafts)
+    draft_input.delete("1.0", tk.END)
+    draft_input.insert("1.0", drafts[current_draft_index])
 
-def load_drafts_frame(drafts_frame, feed_btn):
+
+def delete_current_draft():
+    global current_draft_index, drafts
+    if drafts:
+        del drafts[current_draft_index]
+        with open("drafts.dat", "wb") as file:
+            pickle.dump(drafts, file)
+        if current_draft_index >= len(drafts):
+            current_draft_index = max(0, len(drafts) - 1)
+        draft_input.delete("1.0", tk.END)
+        if drafts:
+            draft_input.insert("1.0", drafts[current_draft_index])
+
+
+def delete_draft_confirmation(drafts_btn):
+    # Create the main window
+    window = tk.Tk()
+    window.title("Delete Draft Confirmation")
+
+    # Set window width and height
+    window_width = 400
+    window_height = 140
+
+    # Calculate the center position of the screen
+    screen_width = window.winfo_screenwidth()
+    screen_height = window.winfo_screenheight()
+    x = (screen_width - window_width) // 2
+    y = (screen_height - window_height) // 2
+
+    # Set window geometry
+    window.geometry(f"{window_width}x{window_height}+{x}+{y}")
+
+    # Create label
+    label = ttk.Label(window, text=f"Do you want to delete this draft from computer?")
+    label.pack(pady=20)
+
+    # Function to handle delete button click
+    def delete_clicked():
+        delete_current_draft()
+        window.destroy()
+        drafts_btn.invoke()
+    
+    def cancel_clicked():
+        window.destroy()
+
+    # Create a frame to hold the buttons aligned to the right
+    button_frame = ttk.Frame(window)
+    button_frame.pack(side="bottom", pady=20)
+
+    # Create the delete button with padding and aligned to the right
+    delete_button = ttk.Button(button_frame, text="Delete", command=delete_clicked)
+    delete_button.pack(side="right", padx=10)
+
+    # Create the cancel button with padding and aligned to the right
+    cancel_button = ttk.Button(button_frame, text="Cancel", command=cancel_clicked)
+    cancel_button.pack(side="right", padx=10)
+
+    # Run the main event loop
+    window.mainloop()
+
+
+def load_drafts_frame(drafts_frame, drafts_btn):
     global draft_input, drafts  # Declare draft_input and drafts as global variables
 
     destroy_frame_child_elements(drafts_frame)
@@ -1401,7 +1465,7 @@ def load_drafts_frame(drafts_frame, feed_btn):
         font=("Inter", 24)
     )
 
-    draft_input = Text(  # draft input
+    draft_input = tk.Text(  # draft input
         drafts_frame,
         bd=0,
         bg="#9597a8",
@@ -1426,9 +1490,101 @@ def load_drafts_frame(drafts_frame, feed_btn):
                 if loaded_data:
                     drafts = loaded_data
                     draft_input.insert("1.0", drafts[0])
+
+                    # Create "Previous Draft" button
+                    previous_draft_btn = tk.Button(
+                        drafts_frame,
+                        text="Previous Draft",
+                        bg="#222222",
+                        fg="#FFFFFF",
+                        bd=0,
+                        highlightthickness=0,
+                        command=previous_draft,
+                        relief="flat",
+                        cursor="hand2"
+                    )
+                    previous_draft_btn.place(
+                        x=0,
+                        y=575.0,
+                        width=182.0,
+                        height=46.0
+                    )
+
+                    # Create "Next Draft" button
+                    next_draft_btn = tk.Button(
+                        drafts_frame,
+                        text="Next Draft",
+                        bg="#222222",
+                        fg="#FFFFFF",
+                        bd=0,
+                        highlightthickness=0,
+                        command=next_draft,
+                        relief="flat",
+                        cursor="hand2"
+                    )
+                    next_draft_btn.place(
+                        x=200,
+                        y=575.0,
+                        width=182.0,
+                        height=46.0
+                    )
+
+                    delete_draft_btn = tk.Button(
+                        drafts_frame,
+                        text="Delete",
+                        bg="#222222",
+                        fg="#FFFFFF",
+                        bd=0,
+                        highlightthickness=0,
+                        command=lambda: delete_draft_confirmation(drafts_btn),
+                        relief="flat",
+                        cursor="hand2"
+                    )
+                    delete_draft_btn.place(
+                        x=600,
+                        y=575.0,
+                        width=182.0,
+                        height=46.0
+                    )
+
+                    copy_draft_btn = tk.Button(
+                        drafts_frame,
+                        text="Copy to Clipboard",
+                        bg="#222222",
+                        fg="#FFFFFF",
+                        bd=0,
+                        highlightthickness=0,
+                        command=lambda: copy_to_clipboard(draft_input, delete_draft_btn),
+                        relief="flat",
+                        cursor="hand2"
+                    )
+                    copy_draft_btn.place(
+                        x=400,
+                        y=575.0,
+                        width=182.0,
+                        height=46.0
+                    )
                 else:
                     drafts = []
                     draft_input.insert("1.0", "File 'drafts.dat' is empty!")
+                    
+                    copy_draft_btn = tk.Button(
+                        drafts_frame,
+                        text="Copy to Clipboard",
+                        bg="#222222",
+                        fg="#FFFFFF",
+                        bd=0,
+                        highlightthickness=0,
+                        command=lambda: copy_to_clipboard(draft_input),
+                        relief="flat",
+                        cursor="hand2"
+                    )
+                    copy_draft_btn.place(
+                        x=400,
+                        y=575.0,
+                        width=182.0,
+                        height=46.0
+                    )
             except EOFError:  # Handle EOFError
                 drafts = []
                 draft_input.insert("1.0", "File 'drafts.dat' is empty!")
@@ -1437,81 +1593,7 @@ def load_drafts_frame(drafts_frame, feed_btn):
             drafts = []
             draft_input.insert("1.0", "File 'drafts.dat' is empty!")
 
-
-
-    # Create "Previous Draft" button
-    previous_draft_btn = Button(
-        drafts_frame,
-        text="Previous Draft",
-        bg="#222222",
-        fg="#FFFFFF",
-        bd=0,
-        highlightthickness=0,
-        command=previous_draft,
-        relief="flat",
-        cursor="hand2"
-    )
-    previous_draft_btn.place(
-        x=0,
-        y=575.0,
-        width=182.0,
-        height=46.0
-    )
-
-    # Create "Next Draft" button
-    next_draft_btn = Button(
-        drafts_frame,
-        text="Next Draft",
-        bg="#222222",
-        fg="#FFFFFF",
-        bd=0,
-        highlightthickness=0,
-        command=next_draft,
-        relief="flat",
-        cursor="hand2"
-    )
-    next_draft_btn.place(
-        x=200,
-        y=575.0,
-        width=182.0,
-        height=46.0
-    )
-
-    copy_draft_btn = Button(
-        drafts_frame,
-        text="Copy to Clipboard",
-        bg="#222222",
-        fg="#FFFFFF",
-        bd=0,
-        highlightthickness=0,
-        command=lambda: copy_to_clipboard(draft_input),
-        relief="flat",
-        cursor="hand2"
-    )
-    copy_draft_btn.place(
-        x=400,
-        y=575.0,
-        width=182.0,
-        height=46.0
-    )
-
-    delete_draft_btn = Button(
-        drafts_frame,
-        text="Delete",
-        bg="#222222",
-        fg="#FFFFFF",
-        bd=0,
-        highlightthickness=0,
-        command=lambda: webbrowser.open(entry.link),
-        relief="flat",
-        cursor="hand2"
-    )
-    delete_draft_btn.place(
-        x=600,
-        y=575.0,
-        width=182.0,
-        height=46.0
-    )
+    
 
 
 

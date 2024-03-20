@@ -218,7 +218,7 @@ def load_main_window():
             # queue_frame.place_configure(x=1000.0, y=1000.0)
 
         elif button == drafts_btn:
-            load_drafts_frame(drafts_frame, feed_btn)
+            load_drafts_frame(drafts_frame, drafts_btn)
 
             drafts_frame.place_configure(x=186.0, y=14.0)
             feed_frame.place_configure(x=1000.0, y=1000.0)
